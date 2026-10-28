@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Только чтение и запись документа по точному семейному коду; список и удаление запрещены
+    match /families/{code} {
+      allow get, create, update: if request.auth != null;
+    }
+  }
+}

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Семейный бюджет</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0e1420">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0e1420;--sf:#161e2e;--sf2:#1d2740;--ln:#2a3753;--tx:#e8edf5;--mt:#8b97ab;--ok:#2dd4a7;--bl:#6ea8ff;--rd:#ff7a8a;--am:#f5b94a}
+*{box-sizing:border-box;margin:0}
+body{font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top) 0 84px}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;max-width:760px;margin:auto}
+h1{font-size:18px;font-weight:700}
+.st{font-size:12px;color:var(--mt);cursor:pointer;background:none;border:0;color:var(--mt)}
+main{max-width:760px;margin:auto;padding:0 14px 20px;display:grid;gap:14px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:16px}
+.hero{padding:22px 18px}
+.big{font-size:38px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.mt{color:var(--mt);font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sub{background:var(--sf2);border-radius:12px;padding:12px}
+.sub b{display:block;font-size:18px;margin-top:2px}
+.ok{color:var(--ok)}.rd{color:var(--rd)}.bl{color:var(--bl)}.am{color:var(--am)}
+h2{font-size:16px;margin-bottom:10px}
+.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--ln)}
+.li:first-of-type{border-top:0}
+.li small{display:block;color:var(--mt);font-size:12px}
+.x{background:none;border:0;color:var(--mt);font-size:18px;cursor:pointer;padding:4px 8px}
+.bar{height:8px;border-radius:4px;background:var(--sf2);margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--bl);border-radius:4px}
+button,input,select,textarea{font:inherit;color:var(--tx)}
+.btn{background:var(--bl);color:#08101f;border:0;border-radius:12px;padding:11px 16px;font-weight:600;cursor:pointer}
+.btn.g{background:var(--sf2);color:var(--tx)}
+.btn.ok{background:var(--ok);color:#06201a}
+.btn:disabled{opacity:.45;cursor:default}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.btns .btn{flex:1;white-space:nowrap}
+input,select,textarea{width:100%;background:var(--sf2);border:1px solid var(--ln);border-radius:10px;padding:10px 12px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--bl);outline-offset:1px}
+label{display:block;font-size:13px;color:var(--mt);margin:10px 0 4px}
+.chk{display:flex;gap:8px;align-items:center;color:var(--tx);font-size:14px}.chk input{width:auto}
+.mnav{display:flex;align-items:center;justify-content:center;gap:14px;font-weight:600}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg label{margin:0;text-align:center;padding:10px;border-radius:10px;background:var(--sf2);cursor:pointer;color:var(--tx)}
+.seg input{display:none}.seg input:checked+span{font-weight:700}
+.seg label:has(input:checked){background:var(--bl);color:#08101f}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--ln);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav div{display:flex;max-width:760px;width:100%}
+nav button{flex:1;background:none;border:0;padding:13px 4px;color:var(--mt);font-size:13px;cursor:pointer}
+nav button.on{color:var(--bl);font-weight:700;box-shadow:inset 0 2px var(--bl)}
+.fab{position:fixed;right:18px;bottom:calc(72px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;font-size:28px;border:0;background:var(--ok);color:#06201a;box-shadow:0 6px 18px #0008;cursor:pointer;z-index:6}
+dialog{background:var(--sf);color:var(--tx);border:1px solid var(--ln);border-radius:18px;padding:18px;width:min(440px,92vw);margin:auto}
+dialog::backdrop{background:#000a}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:7px 6px;border-top:1px solid var(--ln)}th{color:var(--mt);font-weight:500}
+.hid{display:none}
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--ok);color:#06201a;padding:9px 16px;border-radius:10px;font-weight:600;z-index:20;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.show{opacity:1}#toast.err{background:var(--rd)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><h1>Семейный бюджет</h1><button class="st" id="st"></button></header>
+<main id="view"></main>
+<button class="fab" id="fab" aria-label="Добавить операцию">+</button>
+<nav><div id="nav">
+<button data-t="home">Главная</button><button data-t="ops">Операции</button><button data-t="ob">Обязательные</button><button data-t="dp">Вклад</button>
+</div></nav>
+<dialog id="dlg"></dialog>
+<div id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), KEY='fb_state_v1', CK='fb_cfg_v1';
+const e=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36);
+const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const today=()=>iso(new Date());
+const fmt=(n,d=0)=>new Intl.NumberFormat('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n)+' UZS';
+const formatMoney=n=>fmt(n,2);
+const MN=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const people=()=>cfg.people&&cfg.people.length?cfg.people:['Я','Мама','Папа','Брат','Сестра','Семья'];
+const CAT={e:['Продукты','Жильё и коммуналка','Транспорт','Связь и интернет','Здоровье','Образование','Одежда','Развлечения','Кредиты','Обязательные','Другое'],i:['Зарплата','Подработка','Подарок','Другое']};
+const get=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))||f}catch{return f}};
+let S=get(KEY,{tx:[],ob:[],dp:[]}), cfg=get(CK,{}), tab='home',flt='all', M=today().slice(0,7);
+const live=k=>S[k].filter(x=>!x.d);
+const sum=a=>a.reduce((s,x)=>s+x.a,0);
+
+/* ---------- хранение и синхронизация ---------- */
+function merge(a,b){const o={};for(const k of['tx','ob','dp']){const m=new Map();for(const x of[...(a[k]||[]),...(b[k]||[])]){const p=m.get(x.id);if(!p||x.u>p.u)m.set(x.id,x)}o[k]=[...m.values()].sort((x,y)=>x.id<y.id?-1:1)}return o}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch{}push()}
+function put(k,x){x.id=x.id||uid();x.u=Date.now();const i=S[k].findIndex(y=>y.id===x.id);i<0?S[k].push(x):S[k][i]=x;save();render()}
+function rm(k,id){const x=S[k].find(y=>y.id===id);if(x){x.d=1;x.u=Date.now();save();render()}}
+let ref,fs,timer,syncState='off';
+function setSt(){const m={off:'Только на этом устройстве',on:'Синхронизировано',err:'Ошибка синхронизации',wait:'Подключение…'};$('#st').textContent=(syncState==='on'?'● ':'○ ')+m[syncState]}
+function push(){if(!ref)return;clearTimeout(timer);timer=setTimeout(()=>fs.setDoc(ref,{data:JSON.stringify(S),t:Date.now()}).catch(()=>{syncState='err';setSt()}),500)}
+async function startSync(){
+  if(!cfg.fb||!cfg.code){syncState='off';return setSt()}
+  syncState='wait';setSt();
+  try{
+    const v='https://www.gstatic.com/firebasejs/11.6.1/';
+    const [A,U,F]=await Promise.all([import(v+'firebase-app.js'),import(v+'firebase-auth.js'),import(v+'firebase-firestore.js')]);
+    const app=A.initializeApp(JSON.parse(cfg.fb));await U.signInAnonymously(U.getAuth(app));
+    fs=F;ref=F.doc(F.getFirestore(app),'families',cfg.code);
+    F.onSnapshot(ref,snap=>{
+      if(!snap.exists())return push();
+      const raw=snap.data().data,m=merge(S,JSON.parse(raw));
+      if(JSON.stringify(m)!==JSON.stringify(S)){S=m;localStorage.setItem(KEY,JSON.stringify(S));render()}
+      if(JSON.stringify(m)!==JSON.stringify(merge(JSON.parse(raw),{})))push();
+      syncState='on';setSt();
+    },()=>{syncState='err';setSt()});
+  }catch(x){console.error(x);syncState='err';setSt()}
+}
+
+/* ---------- расчёты ---------- */
+const HIGH=20.05/100, LOW=0.01/100;
+function dep(){
+  const ev=live('dp'),open=ev.find(x=>x.k==='open');
+  const bal=ev.reduce((s,x)=>s+(x.k==='wd'?-x.a:x.a),0);
+  const fromW=ev.reduce((s,x)=>s+(x.k==='wd'?-x.a:(x.k==='open'||x.k==='top')&&x.w?x.a:0),0);
+  const done=ev.filter(x=>x.k==='int').length;
+  return{ev,open,bal,fromW,done};
+}
+function totals(){
+  const t=live('tx'),D=dep();
+  const work=sum(t.filter(x=>x.t==='i'))-sum(t.filter(x=>x.t==='e'))-D.fromW;
+  const mo=live('ob').reduce((s,o)=>s+(t.some(x=>x.ob===o.id&&x.m===today().slice(0,7))?0:o.a),0);
+  return{work,dep:D.bal,all:work+D.bal,unpaid:mo};
+}
+const monthTx=()=>live('tx').filter(x=>x.dt.slice(0,7)===M).sort((a,b)=>b.dt<a.dt?-1:b.dt>a.dt?1:b.u-a.u);
+function addM(ds,n){const d=new Date(ds+'T00:00:00');d.setMonth(d.getMonth()+n);return iso(d)}
+const mLabel=k=>MN[+k.slice(5)-1]+' '+k.slice(0,4);
+const mNav=()=>`<div class="card mnav"><button class="x" data-a="mp">‹</button>${mLabel(M)}<button class="x" data-a="mn">›</button></div>`;
+const dstr=s=>new Date(s+'T00:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+
+/* ---------- аналитика и советы ---------- */
+const exs=l=>sum(l.filter(x=>x.t==='e')),ins=l=>sum(l.filter(x=>x.t==='i'));
+const byCat=l=>{const c={};l.filter(x=>x.t==='e').forEach(x=>c[x.c]=(c[x.c]||0)+x.a);return c};
+function analytics(){
+  const tx=live('tx'),ms=k=>tx.filter(x=>x.dt.slice(0,7)===k),pm=addM(M+'-01',-1).slice(0,7);
+  const cur=ms(M),prev=ms(pm),E=exs(cur),I=ins(cur),PE=exs(prev);
+  const dim=new Date(+M.slice(0,4),+M.slice(5),0).getDate(),isNow=M===today().slice(0,7),day=isNow?new Date().getDate():dim;
+  const hist=[5,4,3,2,1,0].map(n=>{const k=addM(M+'-01',-n).slice(0,7),l=ms(k);return{k,i:ins(l),e:exs(l)}});
+  const hs=hist.filter(x=>x.e>0),avgE=hs.length?hs.reduce((s,x)=>s+x.e,0)/hs.length:0;
+  const byP={};cur.filter(x=>x.t==='e').forEach(x=>byP[x.p]=(byP[x.p]||0)+x.a);
+  return{cur,prev,E,I,PE,isNow,perDay:E/day,fc:isNow?E/day*dim:E,hist,avgE,byP,rate:I?(I-E)/I:null};
+}
+function tips(a,T,D){
+  const o=[],add=(c,t)=>o.push({c,t}),tx=live('tx'),free=T.work-T.unpaid,cm=today().slice(0,7);
+  if(!tx.length)add('bl','Добавьте первую операцию кнопкой «+». После этого здесь появятся советы и аналитика.');
+  if(T.work<0)add('rd','Рабочий баланс в минусе. Проверьте, не пропущен ли доход, и отложите необязательные траты.');
+  else if(T.unpaid>T.work)add('am','На обязательные платежи этого месяца не хватает '+fmt(T.unpaid-T.work)+'.');
+  const dd=new Date().getDate(),soon=live('ob').filter(x=>!tx.some(t=>t.ob===x.id&&t.m===cm)&&x.day>=dd&&x.day-dd<=3);
+  if(soon.length)add('am','Скоро срок оплаты: '+soon.map(x=>x.n).join(', ')+'.');
+  if(D.open&&D.done<12&&addM(D.open.dt,D.done+1)<=today())add('bl','Пора начислить проценты по вкладу — кнопка на вкладке «Вклад».');
+  if(D.open&&D.bal<1e5&&D.done<12&&free>=1e5-D.bal)add('ok','Пополните вклад на '+fmt(1e5-D.bal)+': ставка станет 20.05% вместо 0.01%.');
+  else if(D.open&&D.bal>=1e5&&D.done<12&&a.avgE>0&&free>a.avgE*1.5){const s=Math.floor((free-a.avgE)/1e4)*1e4;if(s>0)add('ok','Свободных денег больше, чем вы обычно тратите за месяц. Можно пополнить вклад примерно на '+fmt(s)+' — он приносит 20.05% годовых.')}
+  if(a.rate!=null){
+    if(a.rate<0)add('rd','В этом месяце расходы больше доходов.');
+    else if(a.rate<.1)add('am','Откладывается '+Math.round(a.rate*100)+'% дохода. Хороший ориентир — 20%.');
+    else if(a.rate>=.2)add('ok','Вы откладываете '+Math.round(a.rate*100)+'% дохода — отличный результат.');
+  }
+  if(a.PE>0&&a.E>a.PE*1.2)add('am','Расходы на '+Math.round((a.E/a.PE-1)*100)+'% выше, чем в прошлом месяце.');
+  const c1=byCat(a.cur),c0=byCat(a.prev),g=Object.keys(c1).map(k=>[k,c1[k]-(c0[k]||0)]).sort((x,y)=>y[1]-x[1])[0];
+  if(g&&g[1]>0&&c0[g[0]]&&c1[g[0]]>c0[g[0]]*1.4)add('am','Категория «'+g[0]+'» выросла на '+fmt(g[1])+' по сравнению с прошлым месяцем.');
+  const top=Object.entries(c1).sort((x,y)=>y[1]-x[1])[0];
+  if(top&&a.E>0&&top[1]/a.E>.4&&Object.keys(c1).length>1)add('bl','Больше 40% расходов ушло на «'+top[0]+'». Посмотрите, можно ли здесь сэкономить.');
+  if(a.isNow&&a.I>0&&a.fc>a.I)add('am','При таком темпе к концу месяца расходы составят около '+fmt(a.fc)+' — больше доходов этого месяца.');
+  if(a.avgE>0){const m=T.all/a.avgE;add(m<3?'am':'ok','Все ваши деньги покрывают около '+m.toFixed(1)+' мес. обычных расходов. '+(m<3?'Семейный резерв рекомендуют держать на 3–6 месяцев.':'Это хороший запас на непредвиденное.'))}
+  if(tx.length){const last=tx.map(x=>x.dt).sort().pop();if((Date.now()-new Date(last+'T00:00:00'))/864e5>3)add('bl','Вы давно не вносили операции. Чем чаще записываете, тем точнее аналитика.')}
+  return o.slice(0,6);
+}
+
+/* ---------- экраны ---------- */
+function vHome(){
+  const T=totals(),a=analytics(),D=dep(),c=byCat(a.cur),rows=Object.entries(c).sort((x,y)=>y[1]-x[1]),tp=tips(a,T,D);
+  const st=[[!!D.open,'Укажите свой вклад','go','dp'],[live('ob').length>0,'Добавьте обязательные платежи','go','ob'],[live('tx').length>0,'Внесите первый доход или расход','ntx','']];
+  const onb=st.every(s=>s[0])?'':`<div class="card"><h2>Начните с трёх шагов</h2>${st.map(s=>`<div class="li"><span>${s[0]?'✓':'○'} ${s[1]}</span>${s[0]?'':`<button class="btn g" style="padding:7px 12px" data-a="${s[2]}" data-id="${s[3]}">Открыть</button>`}</div>`).join('')}</div>`;
+  const mx=Math.max(1,...a.hist.flatMap(h=>[h.i,h.e])),bh=v=>`height:${Math.max(v/mx*100,v?3:1)}%`;
+  const dl=a.PE?Math.round((a.E/a.PE-1)*100):null,P=Object.entries(a.byP).sort((x,y)=>y[1]-x[1]);
+  return`<div class="card hero"><div class="mt">Можно потратить сейчас</div>
+  <div class="big ${T.work<0?'rd':''}">${fmt(T.work)}</div>
+  <div class="grid" style="margin-top:16px"><div class="sub"><span class="mt">На вкладе</span><b class="ok">${fmt(T.dep)}</b></div>
+  <div class="sub"><span class="mt">Всего денег (потенциал)</span><b>${fmt(T.all)}</b></div></div>
+  ${live('ob').length?`<div class="sub" style="margin-top:10px"><span class="mt">Свободно после обязательных платежей этого месяца</span><b class="${T.work-T.unpaid<0?'rd':'am'}">${fmt(T.work-T.unpaid)}</b></div>`:''}</div>
+  ${onb}
+  ${tp.length?`<div class="card"><h2>Советы для семьи</h2>${tp.map(t=>`<div style="border-left:3px solid var(--${t.c});padding:4px 0 4px 10px;margin-top:8px">${e(t.t)}</div>`).join('')}</div>`:''}
+  ${mNav()}
+  <div class="grid"><div class="card"><span class="mt">Доходы</span><b class="ok" style="display:block;font-size:19px">+${fmt(a.I)}</b></div>
+  <div class="card"><span class="mt">Расходы</span><b class="rd" style="display:block;font-size:19px">−${fmt(a.E)}</b>${dl!=null?`<span class="mt">${dl>0?'+':''}${dl}% к прошлому месяцу</span>`:''}</div></div>
+  <div class="card"><h2>Аналитика месяца</h2><div class="grid">
+  <div class="sub"><span class="mt">Тратите в день</span><b>${fmt(a.perDay)}</b></div>
+  <div class="sub"><span class="mt">${a.isNow?'Прогноз расходов':'Расходы за месяц'}</span><b>${fmt(a.fc)}</b></div>
+  <div class="sub"><span class="mt">Откладывается</span><b class="${a.rate==null?'':a.rate<0?'rd':'ok'}">${a.rate==null?'—':Math.round(a.rate*100)+'% дохода'}</b></div>
+  <div class="sub"><span class="mt">Запас на</span><b>${a.avgE?(T.all/a.avgE).toFixed(1)+' мес.':'—'}</b></div></div>
+  <h2 style="margin:16px 0 8px;font-size:14px">Последние 6 месяцев <span class="mt">(<span class="ok">доходы</span> / <span class="rd">расходы</span>)</span></h2>
+  <div style="display:flex;gap:8px">${a.hist.map(h=>`<div style="flex:1;text-align:center"><div style="display:flex;gap:3px;align-items:flex-end;height:90px;justify-content:center"><i title="Доходы ${fmt(h.i)}" style="width:42%;background:var(--ok);border-radius:3px 3px 0 0;${bh(h.i)}"></i><i title="Расходы ${fmt(h.e)}" style="width:42%;background:var(--rd);border-radius:3px 3px 0 0;${bh(h.e)}"></i></div><span class="mt" style="font-size:11px">${MN[+h.k.slice(5)-1].slice(0,3)}</span></div>`).join('')}</div></div>
+  <div class="card"><h2>Куда уходят деньги</h2>${rows.length?rows.map(([k,v])=>`<div style="margin-top:10px"><div class="row"><span>${e(k)}</span><span>${fmt(v)} <span class="mt">${Math.round(v/a.E*100)}%</span></span></div><div class="bar"><i style="width:${v/rows[0][1]*100}%"></i></div></div>`).join(''):'<p class="mt">В этом месяце расходов нет. Нажмите «+», чтобы добавить.</p>'}
+  ${P.length>1?`<h2 style="margin:18px 0 4px;font-size:14px">Кто сколько потратил</h2>${P.map(([k,v])=>`<div class="li"><span>${e(k)}</span><b>${fmt(v)}</b></div>`).join('')}`:''}</div>`;
+}
+function vOps(){
+  const all=monthTx(),t=all.filter(x=>flt==='all'||x.t===flt);
+  const chip=(k,l)=>`<button class="btn ${flt===k?'':'g'}" style="padding:8px 4px" data-a="flt" data-id="${k}">${l}</button>`;
+  return mNav()+`<div class="card"><div class="btns" style="margin:0 0 6px">${chip('all','Все')}${chip('i','Доходы')}${chip('e','Расходы')}</div>
+  <p class="mt">Показано операций: ${t.length}. Сумма: <b class="${sum(t.filter(x=>x.t==='i'))>=sum(t.filter(x=>x.t==='e'))?'ok':'rd'}">${fmt(sum(t.filter(x=>x.t==='i'))-sum(t.filter(x=>x.t==='e')))}</b></p></div>
+  <div class="card"><h2>Операции</h2>${t.length?t.map(x=>`<div class="li"><div>${e(x.s||x.c)}<small>${e(x.c)} · ${e(x.p)} · ${dstr(x.dt)}${x.ob?' · обязательный':''}</small></div><div class="row"><b class="${x.t==='i'?'ok':'rd'}">${x.t==='i'?'+':'−'}${fmt(x.a)}</b><button class="x" data-a="dtx" data-id="${x.id}" aria-label="Удалить">×</button></div></div>`).join(''):'<p class="mt">Операций нет. Нажмите «+», чтобы добавить доход или расход.</p>'}</div>`;
+}
+function vOb(){
+  const cm=today().slice(0,7),ob=live('ob').sort((a,b)=>a.day-b.day),tx=live('tx');
+  const paid=o=>tx.find(x=>x.ob===o.id&&x.m===cm);
+  const all=sum(ob),pd=sum(ob.filter(paid));
+  return`<div class="card"><div class="row"><h2>Обязательные платежи · ${MN[+cm.slice(5)-1]}</h2></div>
+  <div class="grid"><div class="sub"><span class="mt">Оплачено</span><b class="ok">${fmt(pd)}</b></div><div class="sub"><span class="mt">Осталось</span><b class="am">${fmt(all-pd)}</b></div></div>
+  <div style="margin-top:8px">${ob.length?ob.map(o=>{const p=paid(o);return`<div class="li"><div>${e(o.n)}<small>${e(o.c)} · до ${o.day} числа · ${fmt(o.a)}</small></div><div class="row"><button class="btn ${p?'g':''}" style="padding:8px 12px" data-a="pay" data-id="${o.id}">${p?'✓ Оплачено':'Оплатить'}</button><button class="x" data-a="dob" data-id="${o.id}" aria-label="Удалить">×</button></div></div>`}).join(''):'<p class="mt">Добавьте аренду, коммуналку, кредиты и другие платежи, которые повторяются каждый месяц.</p>'}</div>
+  <div class="btns"><button class="btn" data-a="nob">Добавить обязательный платёж</button></div></div>`;
+}
+function vDp(){
+  const D=dep();let h='';
+  if(!D.open){h=`<div class="card" style="border-top:3px solid var(--ok)"><h2>Мой вклад</h2><p class="mt">Укажите, сколько сейчас на вкладе и когда он открыт — эти деньги будут входить в «Всего денег».</p><div class="btns"><button class="btn ok" data-a="odp">Указать мой вклад</button></div></div>`}
+  else{
+    const rate=D.bal>=100000?HIGH:LOW,nextI=D.bal*rate/12,nd=addM(D.open.dt,D.done+1),fin=D.done>=12;
+    h=`<div class="card" style="border-top:3px solid var(--ok)"><div class="mt">На вкладе сейчас</div><div class="big ok">${fmt(D.bal,2)}</div>
+    <div class="grid" style="margin-top:14px"><div class="sub"><span class="mt">Начислено месяцев</span><b>${D.done} из 12</b></div><div class="sub"><span class="mt">Ставка сейчас</span><b>${(rate*100).toFixed(2)}%</b></div></div>
+    <p class="mt" style="margin-top:10px">${fin?'Срок вклада 12 месяцев завершён.':`Следующее начисление: ${dstr(nd)} · примерно +${fmt(nextI,2)}`}</p>
+    <div class="btns"><button class="btn ok" data-a="int" ${fin?'disabled':''}>Начислить % за месяц</button><button class="btn" data-a="top">Пополнить</button><button class="btn g" data-a="wd">Снять</button></div></div>
+    <div class="card"><h2>История вклада</h2>${[...D.ev].sort((a,b)=>b.dt<a.dt?-1:b.dt>a.dt?1:b.u-a.u).map(x=>`<div class="li"><div>${{open:'Начальная сумма',top:'Пополнение',int:'Проценты, месяц '+x.n,wd:'Снятие'}[x.k]}<small>${dstr(x.dt)}${x.w?' · из рабочего баланса':''}</small></div><div class="row"><b class="${x.k==='wd'?'rd':'ok'}">${x.k==='wd'?'−':'+'}${fmt(x.a,2)}</b><button class="x" data-a="ddp" data-id="${x.id}" aria-label="Удалить">×</button></div></div>`).join('')}</div>`;
+  }
+  return h+`<div class="card" style="border-top:4px solid #10b981">
+  <h2>Симулятор вклада</h2><p class="mt">Годовой расчет с капитализацией</p>
+  <ul style="margin:12px 0 4px 18px;font-size:14px"><li>Срок: 12 месяцев (капитализация ежемесячно)</li><li><b>≥ 100 000 UZS:</b> ставка 20.05% годовых</li><li><b>&lt; 100 000 UZS:</b> ставка 0.01% годовых</li></ul>
+  <label for="dep-amount">Начальная сумма вклада (UZS)</label><input type="number" id="dep-amount" min="1000" value="100000">
+  <div class="btns"><button class="btn ok" id="btn-calc-deposit">Рассчитать на год</button></div>
+  <div id="dep-results" class="hid" style="margin-top:14px"><div class="sub" style="text-align:center"><span class="mt">Итого через 12 месяцев:</span><b class="ok" style="font-size:24px" id="dep-total"></b><span class="mt" id="dep-profit"></span></div>
+  <h2 style="margin:14px 0 6px;font-size:14px">Детализация по месяцам:</h2><div style="overflow-x:auto"><table><thead><tr><th>Месяц</th><th>Начало</th><th class="ok">%</th><th>Конец</th></tr></thead><tbody id="dep-table-body"></tbody></table></div></div></div>`;
+}
+function render(){
+  $('#view').innerHTML={home:vHome,ops:vOps,ob:vOb,dp:vDp}[tab]();
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  $('#fab').style.display=tab==='dp'||tab==='ob'?'none':'';
+  setSt();
+}
+
+/* ---------- формы ---------- */
+const dlg=$('#dlg');
+const open=(t,body,id)=>{dlg.innerHTML=`<form id="${id}" method="dialog"><h2>${t}</h2>${body}<div class="btns"><button type="button" class="btn g" data-a="cl">Отмена</button><button class="btn">Сохранить</button></div></form>`;dlg.showModal()};
+const opts=a=>a.map(x=>`<option>${e(x)}</option>`).join('');
+const toast=(m,er)=>{const t=$('#toast');t.textContent=m;t.className='show'+(er?' err':'');setTimeout(()=>t.className='',2200)};
+const F={
+ tx(){open('Новая операция',`<div class="seg"><label><input type="radio" name="t" value="e" checked><span>Расход</span></label><label><input type="radio" name="t" value="i"><span>Доход</span></label></div>
+  <label>Сумма (UZS)</label><input name="a" type="number" min="1" required inputmode="numeric" autofocus>
+  <label>Категория</label><select name="c" id="cat">${opts(CAT.e)}</select>
+  <label>Кто</label><select name="p">${opts(people())}</select>
+  <label>Дата</label><input name="dt" type="date" value="${today()}" required>
+  <label>Описание (необязательно)</label><input name="s" list="dl" placeholder="Например: рынок"><datalist id="dl">${[...new Set(live('tx').map(x=>x.s).filter(Boolean))].slice(-30).map(x=>`<option value="${e(x)}">`).join('')}</datalist><p class="mt" style="margin-top:6px">Описание поможет потом вспомнить, на что ушли деньги.</p>`,'f-tx')},
+ ob(){open('Обязательный платёж',`<label>Название</label><input name="n" required placeholder="Аренда, интернет, кредит…" autofocus>
+  <label>Сумма в месяц (UZS)</label><input name="a" type="number" min="1" required>
+  <label>Оплатить до числа</label><input name="day" type="number" min="1" max="31" value="1" required>
+  <label>Категория</label><select name="c">${opts(CAT.e)}</select><p class="mt" style="margin-top:8px">Платёж будет появляться каждый месяц. Нажимайте «Оплатить», когда заплатили — деньги спишутся с баланса.</p>`,'f-ob')},
+ odp(){open('Мой вклад',`<label>Сумма на вкладе сейчас (UZS)</label><input name="a" type="number" min="1" required autofocus>
+  <label>Дата открытия вклада</label><input name="dt" type="date" value="${today()}" required>
+  <label class="chk"><input type="checkbox" name="w"> Списать эту сумму с рабочего баланса</label><p class="mt" style="margin-top:8px">Оставьте галочку выключенной, если вклад уже был открыт раньше — эти деньги просто добавятся к «Всего денег».</p>`,'f-odp')},
+ top(){open('Пополнить вклад',`<label>Сумма (UZS)</label><input name="a" type="number" min="1" required autofocus>
+  <label>Дата</label><input name="dt" type="date" value="${today()}" required>
+  <label class="chk"><input type="checkbox" name="w" checked> Взять из рабочего баланса</label>`,'f-top')},
+ wd(){open('Снять со вклада',`<label>Сумма (UZS)</label><input name="a" type="number" min="1" required autofocus>
+  <label>Дата</label><input name="dt" type="date" value="${today()}" required><p class="mt" style="margin-top:8px">Деньги вернутся в рабочий баланс.</p>`,'f-wd')},
+ set(){open('Синхронизация и данные',`<p class="mt">Чтобы семья видела одни и те же данные на всех устройствах, вставьте конфигурацию вашего проекта Firebase и придумайте длинный семейный код. На всех устройствах они должны совпадать.</p>
+  <label>Семейный код</label><input name="code" value="${e(cfg.code)}" placeholder="например: semya-2026-x7k2p9">
+  <label>Члены семьи (через запятую)</label><input name="people" value="${e(people().join(', '))}">
+  <label>Firebase config (JSON)</label><textarea name="fb" rows="5" placeholder='{"apiKey":"…","authDomain":"…","projectId":"…","appId":"…"}'>${e(cfg.fb)}</textarea>
+  <div class="btns" style="margin-top:6px"><button type="button" class="btn g" data-a="exp">Скачать копию данных</button><button type="button" class="btn g" data-a="imp">Загрузить копию</button></div>`,'f-set')}
+};
+const H={
+ 'f-tx':d=>{put('tx',{t:d.t,a:+d.a,c:d.c,p:d.p,dt:d.dt,s:d.s.trim()});M=d.dt.slice(0,7);toast('Операция добавлена')},
+ 'f-ob':d=>{put('ob',{n:d.n.trim(),a:+d.a,day:+d.day,c:d.c});toast('Платёж добавлен')},
+ 'f-odp':d=>{put('dp',{k:'open',a:+d.a,dt:d.dt,w:!!d.w});toast('Вклад сохранён')},
+ 'f-top':d=>{put('dp',{k:'top',a:+d.a,dt:d.dt,w:!!d.w});toast('Вклад пополнен')},
+ 'f-wd':d=>{if(+d.a>dep().bal)return toast('На вкладе меньше этой суммы',1);put('dp',{k:'wd',a:+d.a,dt:d.dt});toast('Снято со вклада')},
+ 'f-set':d=>{try{if(d.fb.trim())JSON.parse(d.fb)}catch{return toast('Config должен быть в формате JSON',1)}cfg={code:d.code.trim(),fb:d.fb.trim(),people:d.people.split(',').map(x=>x.trim()).filter(Boolean)};localStorage.setItem(CK,JSON.stringify(cfg));toast('Сохранено');startSync();render()}
+};
+document.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,h=H[f.id];if(!h)return;h(Object.fromEntries(new FormData(f)));dlg.close()});
+document.addEventListener('change',ev=>{if(ev.target.name==='t'){$('#cat').innerHTML=opts(CAT[ev.target.value])}});
+
+/* ---------- действия ---------- */
+function accrue(){
+  const D=dep();if(D.done>=12)return;
+  const nd=addM(D.open.dt,D.done+1);
+  if(nd>today()&&!confirm('По графику следующее начисление '+dstr(nd)+'. Начислить сейчас?'))return;
+  const rate=D.bal>=100000?HIGH:LOW;
+  put('dp',{k:'int',a:D.bal*rate/12,dt:today(),n:D.done+1});toast('Проценты начислены')
+}
+const A={
+ go(i){tab=i;render();scrollTo(0,0)},ntx(){F.tx()},flt(i){flt=i;render()},mp(){M=addM(M+'-01',-1).slice(0,7);render()},mn(){M=addM(M+'-01',1).slice(0,7);render()},
+ cl(){dlg.close()},nob(){F.ob()},odp(){F.odp()},top(){F.top()},wd(){F.wd()},int:accrue,
+ dtx(i){if(confirm('Удалить операцию?'))rm('tx',i)},dob(i){if(confirm('Удалить платёж из списка?'))rm('ob',i)},ddp(i){if(confirm('Удалить запись вклада?'))rm('dp',i)},
+ pay(i){const cm=today().slice(0,7),o=S.ob.find(x=>x.id===i),p=live('tx').find(x=>x.ob===i&&x.m===cm);
+  p?rm('tx',p.id):put('tx',{t:'e',a:o.a,c:o.c,p:'Семья',dt:today(),s:o.n,ob:i,m:cm})},
+ exp(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='budget-'+today()+'.json';a.click()},
+ imp(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=async()=>{try{S=merge(S,JSON.parse(await i.files[0].text()));save();render();dlg.close();toast('Данные загружены')}catch{toast('Не удалось прочитать файл',1)}};i.click()}
+};
+document.addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-a]');if(b&&A[b.dataset.a])return A[b.dataset.a](b.dataset.id);
+  const n=ev.target.closest('#nav button');if(n){tab=n.dataset.t;render();scrollTo(0,0)}
+  if(ev.target.closest('#fab'))F.tx();
+  if(ev.target.closest('#st'))F.set();
+  if(ev.target.id==='btn-calc-deposit')calcSim();
+});
+
+/* ---------- Симулятор вклада (логика без изменений) ---------- */
+function calcSim(){
+  const initialAmount=parseFloat(document.getElementById('dep-amount').value);
+  if(isNaN(initialAmount)||initialAmount<=0)return toast('Введите корректную сумму вклада',1);
+  const months=12;let currentBalance=initialAmount,tableHTML='';
+  const HIGH_RATE_ANNUAL=20.05/100,LOW_RATE_ANNUAL=0.01/100;
+  for(let i=1;i<=months;i++){
+    const startBalance=currentBalance;
+    const isHighRate=currentBalance>=100000;
+    const annualRate=isHighRate?HIGH_RATE_ANNUAL:LOW_RATE_ANNUAL;
+    const monthlyRate=annualRate/12;
+    const monthlyProfit=currentBalance*monthlyRate;
+    currentBalance+=monthlyProfit;
+    tableHTML+=`<tr><td>${i}</td><td>${formatMoney(startBalance)}</td><td class="ok">+${formatMoney(monthlyProfit)}</td><td>${formatMoney(currentBalance)}</td></tr>`;
+  }
+  document.getElementById('dep-total').textContent=formatMoney(currentBalance);
+  document.getElementById('dep-profit').textContent=`Чистая прибыль за год: ${formatMoney(currentBalance-initialAmount)}`;
+  document.getElementById('dep-table-body').innerHTML=tableHTML;
+  const r=document.getElementById('dep-results');r.classList.remove('hid');r.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+render();startSync();
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

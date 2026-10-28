@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: family-budget
+    runtime: static
+    staticPublishPath: .
+    buildCommand: echo "static site"
+    headers:
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /manifest.json
+        name: Cache-Control
+        value: no-cache
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
